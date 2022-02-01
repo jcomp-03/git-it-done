@@ -1,5 +1,7 @@
 
 var issueContainerEl = document.querySelector("#issues-container");
+var limitWarningEl = document.querySelector("#limit-warning");
+var repoNameEl = document.querySelector("#repo-name");
 
 // use fetch API to get an individual repository's issues from GitHub API from a 
 var getRepoIssues = function(repo) {
@@ -11,14 +13,21 @@ var getRepoIssues = function(repo) {
         if (response.ok) {
             response.json().then(function(data) {
                 // pass response data to dom function
-                displayIssues(data);    
+                displayIssues(data);
+                // check if api has paginated issues, i.e. more than 30 issues open
+                if (response.headers.get("Link")) {
+                    displayWarning(repo);
+                }    
             });
         } else {
-            alert("There was a problem with your request!");
+            // if not successful, redirect to homepage
+            document.location.replace("./index.html");
         }
     });
 };
 
+
+// display the repository's issues to the webpage via dynamic HTML creation
 var displayIssues = function(issues) {
     // if the repository selected has no issues, write that to the
     // issueContainerEl so the user knows so
@@ -26,7 +35,6 @@ var displayIssues = function(issues) {
         issueContainerEl.textContent = "This repo has no open issues!";
         return;
     }
-
     // loop through the parameter issues, creating HTML elements
     // accordingly and displaying them in the #issues-container div
     for(var i = 0; i < issues.length; i++) {
@@ -61,6 +69,37 @@ var displayIssues = function(issues) {
     }
 };
 
-// run an instance of function getRepoIssues for
-// user facebook's repository react
-getRepoIssues("jcomp-03/module-5-taskmaster-pro");
+
+var displayWarning = function(repo) {
+    // add text to warning container
+    limitWarningEl.textContent = "To see more than 30 issues, visit ";
+    // create a link element which points to the repository's github issues page
+    var linkEl = document.createElement("a");
+    linkEl.textContent = "See More Issues on GitHub.com";
+    linkEl.setAttribute("href", "https://github.com/" + repo + "/issues");
+    linkEl.setAttribute("target", "_blank");
+  
+    // append the link element to warning container
+    limitWarningEl.appendChild(linkEl);
+};
+
+
+var getRepoName = function() {
+    // grab the repo name from the url query string
+    var queryString = document.location.search;
+    var repoName = queryString.split("=")[1];
+    
+    // check if the repo name exists and if so, assign the
+    // span's textContent to it and run function getRepoIssues
+    if(repoName) {
+        repoNameEl.textContent = repoName;
+        getRepoIssues(repoName);
+    } else {
+        // else go back to the homepage
+        document.location.replace("./index.html");
+    }
+}
+
+// run an instance of function getRepoName to
+// retrieve info from query string
+getRepoName();
