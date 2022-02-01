@@ -3,6 +3,32 @@ var userFormEl = document.querySelector("#user-form"); // grab the DOM element w
 var nameInputEl = document.querySelector("#username"); // grab the DOM element with id #username
 var repoContainerEl = document.querySelector("#repos-container"); // grab the DOM element with id #repos-container
 var repoSearchTerm = document.querySelector("#repo-search-term"); // grab the DOM element with id #repo-search term
+var languageButtonsEl = document.querySelector("#language-buttons"); // grab the DOM element with id #language-buttons
+
+var buttonClickHandler = function(event) {
+    var language = event.target.getAttribute("data-language");
+    // if the language exists, run getFeaturedRepos
+    if (language) {
+        getFeaturedRepos(language);
+        // clear out old content in the repo container
+        repoContainerEl.textContent = "";
+    }
+}
+
+
+var getFeaturedRepos = function(language) {
+    var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
+  
+    fetch(apiUrl).then(function(response) {
+        if (response.ok) {
+            response.json().then(function(data) {
+                displayRepos(data.items, language);
+            });
+        } else {
+            alert ('Error: GitHub user not found')
+        }
+    });
+  };
 
 
 var getUserRepos = function(user) {
@@ -86,4 +112,6 @@ var formSubmitHandler = function(event) {
 };
 
 userFormEl.addEventListener("submit", formSubmitHandler);
-
+// when the div reference in languageButtonsEl is clicked, run
+// the corresponding callback function buttonClickHandler
+languageButtonsEl.addEventListener("click", buttonClickHandler);
